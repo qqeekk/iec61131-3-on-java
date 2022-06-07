@@ -38,6 +38,9 @@ Helpers
   underscored_digit =
     ('_')? digit;
 
+  exponent_sign =
+    'E' | 'e';
+
   integer =
     digit underscored_digit*;
 
@@ -182,6 +185,9 @@ Tokens
 
   exponent_sign =
     'E' | 'e';
+
+  exponent =
+    exponent_sign sign? integer;
 
   signed_integer =
     signed_integer;
@@ -479,9 +485,6 @@ Productions
 
   real_literal =
     real_type_name_hashed? signed_integer dot integer exponent?;
-
-  exponent =
-    exponent_sign sign? integer;
 
   bit_string_literal_type_name_hashed =
     bit_string_literal_type_name hash;
