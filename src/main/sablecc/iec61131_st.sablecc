@@ -53,9 +53,6 @@ Helpers
   integer =
     digit underscored_digit*;
 
-  signed_integer =
-    sign? integer;
-
   exponent =
     exponent_sign sign? integer;
 
@@ -139,7 +136,7 @@ Helpers
     unsigned_integer_type_name;
 
   signed_integer_literal =
-    signed_integer |
+    sign? integer |
     binary_integer |
     octal_integer |
     hex_integer;
@@ -228,9 +225,9 @@ Helpers
 
 Tokens
 
-  comment = '(*' unicode_input_character* '*)';
+  jit_token = '(**' sp? 'JIT' sp? '**)';
 
-  jit_token = '(**' 'JIT' '**)';
+  comment = '(*' [unicode_input_character - '*']* '*)';
 
   sign =
     '+' | '-';
@@ -339,11 +336,14 @@ Tokens
     'TRUE' | 'FALSE';
 
   // B.1.2.1 Numeric literals
+
   integer_literal =
-    (integer_type_name '#')? signed_integer_literal;
+    integer_type_name '#' signed_integer_literal |
+    unsigned_integer_literal;
 
   real_literal =
-    (real_type_name '#')? signed_integer '.' integer exponent?;
+    real_type_name '#' sign? integer '.' integer exponent? |
+    integer '.' integer exponent?;
 
   bit_string_literal =
     (bit_string_literal_type_name '#')? unsigned_integer_literal;
@@ -446,7 +446,7 @@ Tokens
     'END_IF';
 
   else_if_token =
-    'ELSEIF';
+    'ELSIF';
 
   else_token =
     'ELSE';
@@ -552,7 +552,7 @@ Productions
     {real} real_literal;
 
   constant =
-    {numeric} numeric_literal |
+    {numeric} sign? numeric_literal |
     {character} character_string |
     {time} time_literal |
     {bit_string} bit_string_literal |
@@ -704,10 +704,7 @@ Productions
     structure_type_name initialized_structure_initialization?;
 
   structure_declaration =
-    struct_token structure_element_declaration_list end_struct_token;
-
-  structure_element_declaration_list =
-    structure_element_declaration_list_head* structure_element_declaration;
+    struct_token structure_element_declaration_list_head+ end_struct_token;
 
   structure_element_declaration_list_head =
     structure_element_declaration semicolon;
@@ -782,10 +779,10 @@ Productions
   // B.1.4.3 Declaration and initialization
 
   input_declarations =
-    var_input_token retain var_init_decl+ end_var_token;
+    var_input_token retain? var_init_decl+ end_var_token;
 
   output_declarations =
-    var_output_token retain var_init_decl+ end_var_token;
+    var_output_token retain? var_init_decl+ end_var_token;
 
   input_output_declarations =
     var_in_out_token var_init_decl+ end_var_token;
