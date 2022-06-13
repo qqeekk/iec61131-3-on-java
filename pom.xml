@@ -20,7 +20,7 @@
                 <artifactId>sablecc-maven-plugin</artifactId>
                 <version>2.0-beta.2</version>
                 <configuration>
-                    <grammar>${project.basedir}/src/main/sablecc/iec61131_st.sablecc</grammar>
+                    <grammar>${project.basedir}/src/main/resources/iec61131_st.sablecc</grammar>
                 </configuration>
             </plugin>
         </plugins>
