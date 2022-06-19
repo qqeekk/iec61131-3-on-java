@@ -582,7 +582,7 @@ Productions
 
   non_generic_type_name =
     {elementary} elementary_type_name |
-    {derived} derived_type_name;
+    {derived} identifier;
 
   // B.1.3.1 Elementary data types
 
@@ -600,60 +600,29 @@ Productions
 
   // B.1.3.3 Derived data types
 
-  derived_type_name =
-    {array_struct_string_simple} identifier;
-
   // single_element_type_name =
     //{subrange} subrange_type_name |
     //{enumerated} enumerated_type_name
 
-  simple_type_name =
-    identifier;
-
-  array_type_name =
-    identifier;
-
-  structure_type_name =
-    identifier;
-
-  string_type_name =
-    identifier;
-
-  structure_element_name =
-    identifier;
-
-  data_type_declaration_element =
-    type_declaration semicolon;
-
   data_type_declaration =
     type_token data_type_declaration_element+ end_type_token;
 
-  type_declaration =
-    {single_type} single_element_type_declaration |
-    {array_type} array_type_declaration |
-    {struct_type} structure_type_declaration |
-    {string_type} string_type_declaration;
+  data_type_declaration_element =
+    identifier colon type_spec_init semicolon;
 
-  array_type_declaration =
-    array_type_name colon array_spec_init;
-
-  single_element_type_declaration =
-    simple_type_declaration;
-    //{subrange} subrange_type_declaration |
-    //{enumerated} enumerated_type_declaration
-
-  simple_type_declaration =
-    simple_type_name colon simple_spec_init;
+  type_spec_init =
+    {simple} simple_spec_init |
+    //{subrange} subrange_spec_init |
+    //{enumerated} enumerated_spec_init |
+    {array_type} array_spec_init |
+    {struct_type} structure_specification |
+    {string_type} string_wstring_type_name brack_integer string_type_declaration_initialization?;
 
   simple_spec_initialization =
     colon_eq constant;
 
   simple_spec_init =
-    simple_specification simple_spec_initialization?;
-
-  simple_specification =
-    {elementary} elementary_type_name; // |
-    //{simple} simple_type_name; // todo: remove
+    elementary_type_name simple_spec_initialization?;
 
   subrange_list =
     subrange_list_head* subrange;
@@ -665,11 +634,7 @@ Productions
     colon_eq array_initialization;
 
   array_spec_init =
-    array_specification array_spec_initialization?;
-
-  array_specification =
-    //{named} array_type_name | // todo: temporary disabled
-    {inline} array_token lbrack subrange_list rbrack of_token non_generic_type_name;
+    array_token lbrack subrange_list rbrack of_token non_generic_type_name array_spec_initialization?;
 
   array_initialization =
     lbrack array_initial_elements_list rbrack;
@@ -690,18 +655,15 @@ Productions
     {struct} structure_initialization |
     {array} array_initialization;
 
-  structure_type_declaration =
-    structure_type_name colon structure_specification;
-
   structure_specification =
     {structure_declaration} structure_declaration |
     {initialized} initialized_structure;
 
   initialized_structure_initialization =
-    colon_eq structure_initialization;
+    colon_eq initial_element;
 
   initialized_structure =
-    structure_type_name initialized_structure_initialization?;
+    identifier initialized_structure_initialization?;
 
   structure_declaration =
     struct_token structure_element_declaration_list_head+ end_struct_token;
@@ -710,7 +672,7 @@ Productions
     structure_element_declaration semicolon;
 
   structure_element_declaration =
-    structure_element_name colon structure_element_init;
+    identifier colon structure_element_init;
 
   structure_element_init =
     {simple} simple_spec_init |
@@ -729,7 +691,7 @@ Productions
     structure_element_initialization comma;
 
   structure_element_initialization =
-    structure_element_name colon_eq initial_element;
+    identifier colon_eq initial_element;
 
   string_wstring_type_name =
     {string} string1_type_name |
@@ -737,11 +699,6 @@ Productions
 
   string_type_declaration_initialization =
     colon_eq [val]:character_string;
-
-  string_type_declaration =
-    // string_type_name colon string_wstring_type_name brack_integer? string_type_declaration_initialization?;
-    {len} string_type_name colon string_wstring_type_name brack_integer string_type_declaration_initialization?;
-    // | {len_spec} string_type_name colon string_wstring_type_name string_type_declaration_initialization;
 
   // B.1.4 Variables
 
@@ -800,7 +757,7 @@ Productions
     var1_list incompl_location? colon var_init_decl_spec semicolon;
 
   var_init_decl_spec =
-    {struct_fb_name} identifier initialized_structure_initialization? |
+    {struct_fb_name} initialized_structure |
     {var} var1_spec_init |
     {array_var} array_spec_init |
     {s_string} single_byte_string_spec |
@@ -820,27 +777,6 @@ Productions
   constant_token_or_retain =
     {constant} constant_token |
     {retain} retain;
-
-  located_var_declarations =
-    var_token constant_token_or_retain? located_var_decl_list end_var_token;
-
-  located_var_decl_list =
-    located_var_decl_list_head* located_var_decl;
-
-  located_var_decl_list_head =
-    located_var_decl semicolon;
-
-  located_var_decl =
-    identifier? location colon located_var_spec_init;
-
-  located_var_spec_init =
-    {simple} simple_spec_init |
-    //subrange_spec_init |
-    //enumerated_spec_init |
-    {array} array_spec_init |
-    {struct} initialized_structure |
-    {sstring} single_byte_string_spec |
-    {dstring} double_byte_string_spec;
 
   location =
     at_token direct_variable;
@@ -864,15 +800,12 @@ Productions
 
   // B.1.5.1 Functions
 
-  function_name =
-    identifier; // custom + 2.5.1.5
-
   function_declaration =
-    jit_token? function_token function_name colon return_type_name function_var_declaration* function_body end_function_token;
+    jit_token? function_token identifier colon return_type_name function_var_declaration* function_body end_function_token;
 
   return_type_name =
     {elementary} elementary_type_name |
-    {derived} derived_type_name;
+    {derived} identifier;
 
   function_var_declaration =
     {io} io_var_declarations |
@@ -894,13 +827,10 @@ Productions
 
   function_block_type_name =
     {standard} standard_function_block_name |
-    {derived} derived_function_block_name;
-
-  derived_function_block_name =
-    identifier;
+    {derived} identifier;
 
   function_block_declaration =
-    function_block_token derived_function_block_name function_block_var_declarations* function_block_body end_function_block_token;
+    function_block_token identifier function_block_var_declarations* function_block_body end_function_block_token;
 
   function_block_var_declarations =
     {io} io_var_declarations |
@@ -923,7 +853,6 @@ Productions
   program_var_declarations =
     {io} io_var_declarations |
     {other} other_var_declarations |
-    {located} located_var_declarations |
     {access} program_access_decls;
 
   program_access_decls =
@@ -985,7 +914,7 @@ Productions
     //enumerated_value |
     {variable} variable |
     {paren} lparen expression rparen |
-    {call} function_name lparen param_assignment_list rparen;
+    {call} identifier lparen param_assignment_list rparen;
 
   param_assignment_list =
     param_assignment_list_head* param_assignment;
